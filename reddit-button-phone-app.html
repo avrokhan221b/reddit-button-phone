@@ -1,816 +1,710 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="bn">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#FF4500">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black">
-    <title>Reddit Button Phone</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=240, initial-scale=1.0">
+<meta name="mobile-web-app-capable" content="yes">
+<title>বাংলা রিডার</title>
+<style>
+/* ── Cloud Phone: 240×320px, keyboard-only navigation ── */
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#fdf6e3;--bg2:#f0e6d0;--bg3:#e0d0b0;
+  --text:#2c1f0e;--text2:#6b4f2a;--text3:#9c7e5e;
+  --accent:#c0392b;--border:rgba(44,31,14,0.2);
+  --card:#fff9ee;--font:'Noto Serif Bengali',Georgia,serif;
+}
+html,body{width:240px;min-height:320px;overflow-x:hidden;font-size:11px;font-family:var(--font);background:var(--bg);color:var(--text)}
 
-        :root {
-            --color-bg-primary: #111;
-            --color-bg-secondary: #1a1a1a;
-            --color-text-primary: #ddd;
-            --color-text-secondary: #aaa;
-            --color-border: #333;
-            --color-accent: #FF4500;
-            --color-highlight: #1f1f1f;
-        }
+/* SCREENS */
+.screen{display:none;flex-direction:column;min-height:320px}
+.screen.active{display:flex}
 
-        body.light-mode {
-            --color-bg-primary: #f5f5f0;
-            --color-bg-secondary: #e8e8e4;
-            --color-text-primary: #222;
-            --color-text-secondary: #666;
-            --color-border: #ccc;
-            --color-highlight: #fff;
-        }
+/* TOP BAR */
+.topbar{
+  background:var(--accent);color:#fff;
+  height:28px;padding:0 6px;
+  display:flex;align-items:center;gap:5px;
+  font-size:12px;font-weight:bold;flex-shrink:0;
+}
+.topbar .back{font-size:14px;cursor:pointer;padding:2px 4px}
+.topbar .title{flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font-size:11px}
+.topbar .icon-btn{background:none;border:none;color:#fff;cursor:pointer;padding:2px 4px;font-size:13px;border-radius:3px}
+.topbar .icon-btn:focus,.topbar .icon-btn.sel{background:rgba(255,255,255,0.25);outline:none}
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: var(--color-bg-primary);
-            color: var(--color-text-primary);
-            transition: background 0.3s, color 0.3s;
-            height: 100vh;
-            overflow: hidden;
-        }
+/* KEY HINT BAR */
+.keyhint{
+  background:var(--bg3);border-top:1px solid var(--border);
+  padding:2px 5px;font-size:9px;color:var(--text2);
+  text-align:center;flex-shrink:0;
+}
+kbd{background:var(--card);border:1px solid var(--border);border-radius:2px;padding:0 3px;font-size:8px;font-family:monospace}
 
-        #app {
-            width: 100%;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-        }
+/* STATUS BAR */
+.statusbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:2px 5px;font-size:9px;color:var(--text3);display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
+.dot{width:6px;height:6px;border-radius:50%;background:#ccc;display:inline-block;margin-right:3px;transition:background .3s}
+.dot.ok{background:#27ae60}.dot.err{background:#c0392b}
 
-        .status-bar {
-            background: var(--color-accent);
-            color: #fff;
-            padding: 4px 8px;
-            font-size: 11px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-shrink: 0;
-        }
+/* SEARCH */
+.search-wrap{padding:4px 5px;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0}
+.search-input{width:100%;padding:4px 7px;border-radius:10px;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:11px;font-family:var(--font);outline:none}
+.search-input:focus{border-color:var(--accent)}
 
-        .status-left, .status-right {
-            display: flex;
-            gap: 4px;
-            align-items: center;
-        }
+/* CONTINUE BANNER */
+.cont-banner{
+  display:none;margin:5px;
+  background:var(--accent);color:#fff;
+  border-radius:6px;padding:6px 8px;cursor:pointer;
+  font-size:10px;
+}
+.cont-banner:focus,.cont-banner.sel{outline:2px solid #fff;outline-offset:1px}
+.cont-banner .cb-label{font-size:9px;opacity:.8;margin-bottom:1px}
+.cont-banner .cb-title{font-size:11px;font-weight:bold;margin-bottom:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cont-banner .cb-ch{font-size:9px;opacity:.85}
+.cont-banner .cb-arr{float:right;font-size:16px;margin-top:-1px}
 
-        .top-bar {
-            background: var(--color-bg-secondary);
-            border-bottom: 0.5px solid var(--color-border);
-            padding: 4px 8px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 12px;
-            flex-shrink: 0;
-        }
+/* BOOK LIST */
+.book-list{flex:1;overflow-y:auto}
+.book-item{
+  display:flex;align-items:center;gap:5px;
+  padding:5px 6px;border-bottom:1px solid var(--border);
+  cursor:pointer;
+}
+.book-item:focus,.book-item.sel{background:#d5e8ff;outline:none}
+.book-thumb{
+  width:28px;height:40px;border-radius:3px;
+  background:var(--bg3);flex-shrink:0;overflow:hidden;
+  display:flex;align-items:center;justify-content:center;
+  font-size:8px;text-align:center;color:var(--text2);line-height:1.2;padding:1px;
+}
+.book-thumb img{width:100%;height:100%;object-fit:cover}
+.book-info{flex:1;overflow:hidden}
+.book-name{font-size:11px;font-weight:bold;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text)}
+.book-auth{font-size:9px;color:var(--text3)}
+.book-prog{height:2px;background:var(--bg3);margin-top:3px;border-radius:1px;overflow:hidden}
+.book-prog-fill{height:100%;background:var(--accent);border-radius:1px}
 
-        .top-bar-title {
-            color: var(--color-accent);
-            font-weight: 500;
-            font-size: 13px;
-        }
+/* BOOK DETAIL */
+.detail-hero{
+  padding:7px 6px;display:flex;gap:7px;
+  background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0;
+}
+.detail-cover{width:55px;height:80px;border-radius:4px;background:var(--bg3);flex-shrink:0;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:9px;text-align:center;color:var(--text2);padding:3px;line-height:1.3}
+.detail-cover img{width:100%;height:100%;object-fit:cover}
+.detail-info h2{font-size:12px;font-weight:bold;line-height:1.3;margin-bottom:3px}
+.detail-info .auth{font-size:10px;color:var(--text3);margin-bottom:7px}
+.read-btn{
+  padding:5px 10px;border-radius:10px;
+  background:var(--accent);color:#fff;border:none;
+  font-size:11px;font-weight:bold;cursor:pointer;
+  font-family:var(--font);
+}
+.read-btn:focus,.read-btn.sel{outline:2px solid var(--accent);outline-offset:2px;background:#922b21}
 
-        .nav-tabs {
-            background: var(--color-bg-primary);
-            border-bottom: 0.5px solid var(--color-border);
-            padding: 4px 8px;
-            font-size: 11px;
-            color: var(--color-text-secondary);
-            display: flex;
-            gap: 12px;
-            flex-shrink: 0;
-        }
+/* CHAPTER LIST */
+.ch-list{flex:1;overflow-y:auto}
+.ch-item{
+  display:flex;align-items:center;gap:5px;
+  padding:6px 6px;border-bottom:1px solid var(--border);
+  cursor:pointer;font-size:11px;
+}
+.ch-item:focus,.ch-item.sel{background:#d5e8ff;outline:none}
+.ch-item.cur{background:#fde8e8}
+.ch-num{font-size:9px;color:var(--text3);width:18px;flex-shrink:0}
+.ch-title{flex:1;color:var(--text);line-height:1.3}
+.ch-mark{font-size:11px;color:var(--accent)}
 
-        .content {
-            flex: 1;
-            overflow-y: auto;
-            overflow-x: hidden;
-        }
+/* READER */
+#reader-screen{background:var(--bg)}
+.reader-bar{
+  position:sticky;top:0;background:var(--bg2);
+  border-bottom:1px solid var(--border);
+  height:26px;padding:0 5px;
+  display:flex;align-items:center;gap:4px;flex-shrink:0;
+}
+.reader-bar .rt{flex:1;font-size:9px;color:var(--text2);overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.fsize-btn{background:none;border:1px solid var(--border);border-radius:3px;color:var(--text);cursor:pointer;font-size:10px;padding:1px 5px}
+.fsize-btn:focus,.fsize-btn.sel{background:var(--bg3);outline:none}
+.prog-track{height:2px;background:var(--bg3);flex-shrink:0}
+.prog-fill{height:2px;background:var(--accent);transition:width .1s}
+.ch-body{
+  padding:10px 8px 70px;
+  font-family:var(--font);
+  font-size:14px;line-height:1.85;
+  color:var(--text);
+}
+.ch-body h1{font-size:14px;margin-bottom:10px;line-height:1.4;font-weight:bold}
+.ch-body p{margin-bottom:10px;text-align:justify}
+.ch-body .loading{text-align:center;padding:40px 10px;color:var(--text3);font-size:11px}
+.ch-body .err-msg{text-align:center;padding:20px 10px;color:var(--accent);font-size:11px}
 
-        .content::-webkit-scrollbar {
-            width: 3px;
-        }
+/* CHAPTER NAV */
+.ch-nav{
+  position:fixed;bottom:0;left:0;width:240px;
+  display:flex;background:var(--bg2);
+  border-top:1px solid var(--border);height:30px;
+}
+.nav-btn{flex:1;background:none;border:none;cursor:pointer;font-size:11px;color:var(--text2);font-family:var(--font);transition:background .1s}
+.nav-btn:focus,.nav-btn.sel{background:var(--bg3);outline:none}
+.nav-btn:disabled{opacity:.3;pointer-events:none}
+.nav-btn.mid{border-left:1px solid var(--border);border-right:1px solid var(--border);font-size:9px;color:var(--text3);flex:1.4}
 
-        .content::-webkit-scrollbar-thumb {
-            background: var(--color-border);
-            border-radius: 2px;
-        }
+/* HISTORY */
+.hist-item{
+  display:flex;align-items:center;gap:6px;
+  padding:6px 6px;border-bottom:1px solid var(--border);
+  cursor:pointer;
+}
+.hist-item:focus,.hist-item.sel{background:#d5e8ff;outline:none}
+.hist-thumb{width:28px;height:40px;border-radius:3px;background:var(--bg3);flex-shrink:0;overflow:hidden}
+.hist-thumb img{width:100%;height:100%;object-fit:cover}
+.hist-info{flex:1;overflow:hidden}
+.hist-title{font-size:11px;font-weight:bold;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hist-ch{font-size:9px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hist-pct{font-size:10px;font-weight:bold;color:var(--accent);flex-shrink:0}
 
-        /* FEED VIEW */
-        .feed-view {
-            display: none;
-        }
+/* SETTINGS */
+.sett-section{padding:6px 6px 2px}
+.sett-lbl{font-size:9px;font-weight:bold;text-transform:uppercase;letter-spacing:.05em;color:var(--text3);margin-bottom:5px}
+.sett-row{display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border)}
+.sett-row-lbl{font-size:11px;color:var(--text)}
+.tog{width:32px;height:18px;background:var(--bg3);border-radius:9px;border:none;cursor:pointer;position:relative;transition:background .2s;flex-shrink:0}
+.tog.on{background:var(--accent)}
+.tog::after{content:'';position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:7px;background:#fff;transition:left .2s}
+.tog.on::after{left:16px}
+.tog:focus{outline:2px solid var(--accent)}
 
-        .feed-view.active {
-            display: flex;
-            flex-direction: column;
-        }
+/* SPINNER */
+.spin{display:inline-block;width:18px;height:18px;border:2px solid var(--bg3);border-top-color:var(--accent);border-radius:50%;animation:sp .7s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
 
-        .post-item {
-            padding: 5px 6px;
-            border-bottom: 0.5px solid var(--color-border);
-            cursor: pointer;
-            transition: background 0.1s;
-        }
+/* EMPTY */
+.empty{padding:30px 10px;text-align:center;color:var(--text3);font-size:11px}
 
-        .post-item.selected {
-            background: var(--color-highlight);
-            border-left: 2px solid var(--color-accent);
-            padding-left: 5px;
-        }
-
-        .post-subreddit {
-            font-size: 11px;
-            color: var(--color-accent);
-            font-weight: 500;
-        }
-
-        .post-title {
-            font-size: 13px;
-            color: var(--color-text-primary);
-            line-height: 1.4;
-            margin: 3px 0;
-            font-weight: 500;
-        }
-
-        .post-meta {
-            font-size: 11px;
-            color: var(--color-text-secondary);
-            display: flex;
-            gap: 8px;
-        }
-
-        /* POST VIEW */
-        .post-view {
-            display: none;
-            flex-direction: column;
-            overflow: hidden;
-        }
-
-        .post-view.active {
-            display: flex;
-        }
-
-        .post-header {
-            padding: 4px 6px;
-            border-bottom: 0.5px solid var(--color-border);
-            flex-shrink: 0;
-        }
-
-        .post-header-sub {
-            font-size: 11px;
-            color: var(--color-accent);
-        }
-
-        .post-header-title {
-            font-size: 13px;
-            color: var(--color-text-primary);
-            font-weight: 500;
-            line-height: 1.4;
-            margin: 3px 0;
-        }
-
-        .post-body {
-            flex: 1;
-            overflow-y: auto;
-            padding: 5px 6px;
-            font-size: 11px;
-            color: var(--color-text-primary);
-            line-height: 1.5;
-        }
-
-        .post-body::-webkit-scrollbar {
-            width: 3px;
-        }
-
-        .post-body::-webkit-scrollbar-thumb {
-            background: var(--color-border);
-        }
-
-        .post-actions {
-            display: flex;
-            gap: 10px;
-            padding: 4px 6px;
-            border-top: 0.5px solid var(--color-border);
-            border-bottom: 0.5px solid var(--color-border);
-            font-size: 11px;
-            flex-shrink: 0;
-        }
-
-        .action-btn {
-            color: var(--color-accent);
-            cursor: pointer;
-            font-weight: 500;
-        }
-
-        .action-meta {
-            color: var(--color-text-secondary);
-        }
-
-        /* COMMENTS */
-        .comments-section {
-            flex: 1;
-            overflow-y: auto;
-            border-top: 0.5px solid var(--color-border);
-        }
-
-        .comments-header {
-            background: var(--color-bg-secondary);
-            padding: 4px 6px;
-            font-size: 11px;
-            font-weight: 500;
-            color: var(--color-text-secondary);
-            border-bottom: 0.5px solid var(--color-border);
-            flex-shrink: 0;
-            position: sticky;
-            top: 0;
-            z-index: 10;
-        }
-
-        .comment {
-            padding: 4px 6px;
-            border-bottom: 0.5px solid var(--color-border);
-            cursor: pointer;
-            transition: background 0.1s;
-        }
-
-        .comment.selected {
-            background: var(--color-highlight);
-            border-left: 2px solid var(--color-accent);
-            padding-left: 5px;
-        }
-
-        .comment-user {
-            font-size: 11px;
-            color: var(--color-accent);
-            font-weight: 500;
-        }
-
-        .comment-text {
-            font-size: 11px;
-            color: var(--color-text-primary);
-            line-height: 1.4;
-            margin: 1px 0;
-        }
-
-        .comment-meta {
-            font-size: 10px;
-            color: var(--color-text-secondary);
-        }
-
-        /* SOFT KEYS */
-        .soft-keys {
-            background: var(--color-bg-secondary);
-            border-top: 0.5px solid var(--color-border);
-            padding: 4px 8px;
-            display: flex;
-            justify-content: space-between;
-            font-size: 11px;
-            color: var(--color-text-secondary);
-            flex-shrink: 0;
-        }
-
-        .soft-key-label {
-            flex: 1;
-            text-align: center;
-        }
-
-        /* SETTINGS */
-        .settings-view {
-            display: none;
-            padding: 8px;
-            font-size: 12px;
-        }
-
-        .settings-view.active {
-            display: block;
-        }
-
-        .setting-item {
-            padding: 6px;
-            border: 0.5px solid var(--color-border);
-            margin-bottom: 6px;
-            border-radius: 3px;
-        }
-
-        .setting-label {
-            font-size: 12px;
-            font-weight: 500;
-            margin-bottom: 2px;
-        }
-
-        .setting-value {
-            font-size: 11px;
-            color: var(--color-text-secondary);
-        }
-
-        /* KEY INFO */
-        .key-info {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: var(--color-bg-secondary);
-            border-top: 0.5px solid var(--color-border);
-            padding: 4px 6px;
-            font-size: 7px;
-            color: var(--color-text-secondary);
-            z-index: 100;
-            text-align: center;
-            max-height: 24px;
-            overflow: hidden;
-            display: none;
-        }
-
-        body.fullscreen #app {
-            margin-bottom: 0;
-        }
-
-        @media (max-height: 320px) {
-            .nav-tabs {
-                display: none;
-            }
-        }
-    </style>
+/* DARK MODE */
+[data-dark] {
+  --bg:#1a1208;--bg2:#231a0f;--bg3:#2d2214;
+  --text:#e8d5b0;--text2:#c4a060;--text3:#8a6840;
+  --accent:#e07050;--border:rgba(232,213,176,0.15);--card:#1f1608;
+}
+</style>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Bengali:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div id="app">
-        <div class="status-bar">
-            <div class="status-left">
-                <span id="page-title">reddit</span>
-            </div>
-            <div class="status-right">
-                <span id="battery">🔋</span>
-                <span id="signal">📶</span>
-            </div>
-        </div>
 
-        <div class="top-bar">
-            <div class="top-bar-title" id="top-title">r/popular</div>
-            <div id="top-info" style="font-size: 8px; color: var(--color-text-secondary);">Home • Pop • Subs</div>
-        </div>
+<!-- ══ HOME SCREEN ══ -->
+<div id="home-screen" class="screen active">
+  <div class="topbar">
+    <span style="font-size:13px">📚</span>
+    <span class="title">বাংলা রিডার</span>
+    <button class="icon-btn" id="theme-btn" onclick="toggleDark()" title="থিম">🌙</button>
+    <button class="icon-btn" onclick="goTo('settings-screen')" title="সেটিং">⚙</button>
+  </div>
+  <div class="statusbar">
+    <span><span class="dot" id="sdot"></span><span id="stext">সংযোগ হচ্ছে…</span></span>
+    <span id="cache-info"></span>
+  </div>
+  <div id="home-tabs" style="display:flex;background:var(--bg2);border-bottom:1px solid var(--border)">
+    <button class="nav-btn" id="tab-book-btn" style="font-size:11px;border-bottom:2px solid var(--accent);color:var(--accent)" onclick="switchTab('books')">বই</button>
+    <button class="nav-btn" id="tab-hist-btn" style="font-size:11px;border-bottom:2px solid transparent" onclick="switchTab('history')">ইতিহাস</button>
+  </div>
 
-        <div class="nav-tabs" id="nav-tabs">
-            <span>Home</span>
-            <span>Popular</span>
-            <span>Subscribed</span>
-        </div>
-
-        <div class="content" id="content">
-            <!-- FEED VIEW -->
-            <div class="feed-view active" id="feedView"></div>
-
-            <!-- POST VIEW -->
-            <div class="post-view" id="postView">
-                <div class="post-header" id="postHeader"></div>
-                <div class="post-body" id="postBody"></div>
-                <div class="post-actions" id="postActions"></div>
-                <div class="comments-header">Comments (?) — top</div>
-                <div class="comments-section" id="commentsSection"></div>
-            </div>
-
-            <!-- SETTINGS -->
-            <div class="settings-view" id="settingsView">
-                <div class="setting-item">
-                    <div class="setting-label">Dark mode</div>
-                    <div class="setting-value" id="darkModeStatus">On</div>
-                    <div style="font-size: 7px; color: var(--color-text-secondary); margin-top: 2px;">Press 5 to toggle</div>
-                </div>
-                <div class="setting-item">
-                    <div class="setting-label">Shortcuts</div>
-                    <div class="setting-value">
-                        0: Home | 1: Inbox<br>
-                        2: Search | 3: Subs<br>
-                        4: Upvote | 5: Theme<br>
-                        6: Share | 7: Prev<br>
-                        8: Next | 9: Comments<br>
-                        *: Back | #: Menu
-                    </div>
-                </div>
-                <div class="setting-item">
-                    <div class="setting-label">About</div>
-                    <div class="setting-value">Reddit Button Phone v1.0</div>
-                </div>
-            </div>
-        </div>
-
-        <div class="soft-keys" id="softKeys">
-            <div class="soft-key-label">Menu</div>
-            <div class="soft-key-label">OK</div>
-            <div class="soft-key-label">Back</div>
-        </div>
-
-        <div class="key-info" id="keyInfo">Use D-pad ↑↓ to scroll • OK to select • * to back • # for menu</div>
+  <!-- BOOKS TAB -->
+  <div id="tab-books">
+    <div id="cont-banner" class="cont-banner" tabindex="0" onclick="continueRead()">
+      <span class="cb-arr">›</span>
+      <div class="cb-label">যেখানে ছেড়েছিলেন</div>
+      <div class="cb-title" id="cb-btitle"></div>
+      <div class="cb-ch" id="cb-bch"></div>
     </div>
+    <div class="search-wrap">
+      <input class="search-input" id="bsearch" placeholder="বই খুঁজুন…" oninput="filterBooks()" tabindex="0">
+    </div>
+    <div class="book-list" id="book-list">
+      <div class="empty"><div class="spin" style="margin:0 auto 8px"></div><br>লোড হচ্ছে…</div>
+    </div>
+  </div>
 
-    <script>
-        const app = {
-            currentView: 'feed',
-            currentMode: 'dark',
-            selectedFeedIndex: 0,
-            selectedCommentIndex: 0,
-            currentPost: null,
-            commentSort: 'top',
+  <!-- HISTORY TAB -->
+  <div id="tab-history" style="display:none;flex:1;overflow-y:auto">
+    <div id="hist-list"></div>
+  </div>
 
-            posts: [
-                {
-                    id: 1,
-                    subreddit: 'r/technology',
-                    author: 'clouduser',
-                    time: '3h',
-                    title: "Google's cloud streaming update lets apps run on any device natively",
-                    body: "The update enables full app streaming via Cloudmosa-style virtual phones, allowing users to run any Android app without installation. Engineers say latency is under 40ms on 4G and 20ms on 5G. This could be a game-changer for low-end devices.",
-                    upvotes: '24.3k',
-                    comments: 841,
-                    saved: false,
-                    comments_data: [
-                        { author: 'techfan99', text: 'This is huge for low-end devices. Finally no more storage issues.', upvotes: '4.2k', time: '2h' },
-                        { author: 'skeptic_dev', text: 'Latency will be the killer. 40ms sounds fine but peaks hit hard.', upvotes: '1.8k', time: '1h' },
-                        { author: 'clouddev', text: 'Been testing the beta. Works smooth on my old phone!', upvotes: '892', time: '45m' }
-                    ]
-                },
-                {
-                    id: 2,
-                    subreddit: 'r/gaming',
-                    author: 'gamer99',
-                    time: '6h',
-                    title: 'This open world is absolutely insane. Screenshots don\'t do it justice.',
-                    body: "Been playing for 20 hours and I still haven't explored 30% of the map. The attention to detail is mind-blowing. NPCs have daily routines, the weather affects gameplay, and you can interact with almost everything. It's the best open-world game I've played in years.",
-                    upvotes: '58.1k',
-                    comments: 2100,
-                    saved: false,
-                    comments_data: [
-                        { author: 'consoleking', text: 'Which game is this? Need to know.', upvotes: '12k', time: '5h' },
-                        { author: 'pcmaster', text: 'Finally a game that justifies my GPU upgrade.', upvotes: '8.3k', time: '4h' },
-                        { author: 'casualplayer', text: 'Is it on Switch?', upvotes: '2.1k', time: '3h' }
-                    ]
-                },
-                {
-                    id: 3,
-                    subreddit: 'r/science',
-                    author: 'scidaily',
-                    time: '1h',
-                    title: 'Researchers discover new method to store solar energy for up to 18 years',
-                    body: "A team of physicists has developed a molecular compound that can absorb solar energy during the day and release it as heat at night or months later. The compound, called an azobenzene derivative, achieves 18-year storage duration. This breakthrough could revolutionize renewable energy.",
-                    upvotes: '91.7k',
-                    comments: 3400,
-                    saved: false,
-                    comments_data: [
-                        { author: 'physics_geek', text: 'Finally! Energy storage has been the bottleneck for years.', upvotes: '15k', time: '45m' },
-                        { author: 'skeptical_scientist', text: 'Scale and cost are still huge unknowns.', upvotes: '4.2k', time: '30m' },
-                        { author: 'solar_engineer', text: 'If commercialized, this could change everything.', upvotes: '7.8k', time: '20m' }
-                    ]
-                },
-                {
-                    id: 4,
-                    subreddit: 'r/worldnews',
-                    author: 'newshunter',
-                    time: '2h',
-                    title: 'UN climate summit reaches breakthrough agreement on carbon markets',
-                    body: "After two weeks of negotiations, countries have agreed on a framework for international carbon markets. The deal aims to help countries meet their climate targets while funding green projects in developing nations.",
-                    upvotes: '34.2k',
-                    comments: 2800,
-                    saved: false,
-                    comments_data: [
-                        { author: 'environmental_advocate', text: 'This is a step in the right direction.', upvotes: '5.6k', time: '1.5h' },
-                        { author: 'policy_analyst', text: 'Implementation will be the real challenge.', upvotes: '3.1k', time: '1h' }
-                    ]
-                },
-                {
-                    id: 5,
-                    subreddit: 'r/AskReddit',
-                    author: 'curious_user',
-                    time: '4h',
-                    title: 'What\'s the most underrated skill everyone should learn?',
-                    body: "I'm looking to develop a new skill but want something practical and not obvious. What are some underrated skills that have genuinely improved your life?",
-                    upvotes: '18.9k',
-                    comments: 4200,
-                    saved: false,
-                    comments_data: [
-                        { author: 'practical_thinker', text: 'Basic cooking skills. Save money and eat healthier.', upvotes: '8.2k', time: '3h' },
-                        { author: 'networker', text: 'Active listening. Changes everything.', upvotes: '6.7k', time: '2.5h' }
-                    ]
-                }
-            ],
+  <div class="keyhint">
+    <kbd>↑</kbd><kbd>↓</kbd> নেভিগেট &nbsp;|&nbsp; <kbd>OK</kbd> খুলুন &nbsp;|&nbsp; <kbd>*</kbd> ব্যাক
+  </div>
+</div>
 
-            init() {
-                try {
-                    this.setupEventListeners();
-                    this.checkSavedSettings();
-                    this.renderFeedView();
-                    this.updateStatus();
-                    this.setupErrorHandling();
-                } catch (error) {
-                    console.error('App initialization error:', error);
-                    alert('App error. Refreshing...');
-                    location.reload();
-                }
-            },
+<!-- ══ DETAIL SCREEN ══ -->
+<div id="detail-screen" class="screen">
+  <div class="topbar">
+    <button class="back icon-btn" onclick="goBack()">←</button>
+    <span class="title" id="dtopbar">বই</span>
+  </div>
+  <div class="detail-hero">
+    <div class="detail-cover" id="dcov"></div>
+    <div class="detail-info">
+      <h2 id="dtitle"></h2>
+      <div class="auth" id="dauthor"></div>
+      <button class="read-btn" id="dreadbtn" onclick="startRead()">পড়া শুরু</button>
+    </div>
+  </div>
+  <div class="ch-list" id="ch-list">
+    <div class="empty"><div class="spin" style="margin:0 auto 8px"></div><br>অধ্যায় লোড হচ্ছে…</div>
+  </div>
+  <div class="keyhint"><kbd>↑</kbd><kbd>↓</kbd> অধ্যায় &nbsp;|&nbsp; <kbd>OK</kbd> পড়ুন &nbsp;|&nbsp; <kbd>*</kbd> ব্যাক</div>
+</div>
 
-            setupErrorHandling() {
-                // Handle unresponsiveness
-                window.addEventListener('error', (e) => {
-                    console.error('Runtime error:', e.message);
-                });
+<!-- ══ READER SCREEN ══ -->
+<div id="reader-screen" class="screen">
+  <div class="reader-bar">
+    <button class="icon-btn" style="color:var(--text2);font-size:13px" onclick="exitRead()">←</button>
+    <div class="rt" id="rbooktitle"></div>
+    <button class="fsize-btn" onclick="chFont(-1)">A-</button>
+    <button class="fsize-btn" onclick="chFont(1)">A+</button>
+  </div>
+  <div class="prog-track"><div class="prog-fill" id="rprog"></div></div>
+  <div class="ch-body" id="chbody">
+    <div class="loading"><div class="spin" style="margin:0 auto 8px"></div><br>পড়া লোড হচ্ছে…</div>
+  </div>
+  <nav class="ch-nav">
+    <button class="nav-btn" id="prev-btn" onclick="navCh(-1)">← আগের</button>
+    <button class="nav-btn mid" id="chnav-mid"><span id="chnav-n"></span></button>
+    <button class="nav-btn" id="next-btn" onclick="navCh(1)">পরের →</button>
+  </nav>
+</div>
 
-                window.addEventListener('unhandledrejection', (e) => {
-                    console.error('Unhandled promise rejection:', e.reason);
-                });
+<!-- ══ SETTINGS SCREEN ══ -->
+<div id="settings-screen" class="screen">
+  <div class="topbar">
+    <button class="back icon-btn" onclick="goBack()">←</button>
+    <span class="title">সেটিংস</span>
+  </div>
+  <div style="flex:1;overflow-y:auto;padding-bottom:20px">
+    <div class="sett-section">
+      <div class="sett-lbl">থিম</div>
+      <div class="sett-row">
+        <div class="sett-row-lbl">ডার্ক মোড</div>
+        <button class="tog" id="dtog" onclick="toggleDark()"></button>
+      </div>
+    </div>
+    <div class="sett-section">
+      <div class="sett-lbl">ফন্ট সাইজ</div>
+      <div class="sett-row">
+        <div class="sett-row-lbl">বর্তমান: <strong id="fslbl">14</strong>px</div>
+        <div style="display:flex;gap:4px">
+          <button class="fsize-btn" onclick="chFont(-1)">A-</button>
+          <button class="fsize-btn" onclick="chFont(1)">A+</button>
+        </div>
+      </div>
+    </div>
+    <div class="sett-section">
+      <div class="sett-lbl">সার্ভার</div>
+      <div class="sett-row" style="flex-direction:column;align-items:flex-start;gap:3px">
+        <div class="sett-row-lbl" style="font-size:9px;color:var(--text3);word-break:break-all;font-family:monospace" id="srv-url"></div>
+        <span><span class="dot" id="sdot2"></span><span id="stext2" style="font-size:9px;color:var(--text3)"></span></span>
+      </div>
+    </div>
+    <div class="sett-section">
+      <div class="sett-lbl">ডেটা</div>
+      <div class="sett-row">
+        <div class="sett-row-lbl">অগ্রগতি মুছুন</div>
+        <button class="read-btn" style="font-size:10px;padding:4px 10px;background:var(--bg3);color:var(--text)" onclick="clearProg()">মুছুন</button>
+      </div>
+    </div>
+    <div class="sett-section" style="font-size:9px;color:var(--text3);line-height:1.6;padding-top:8px">
+      বই ebanglalibrary.com থেকে নেওয়া হয়।<br>এই অ্যাপ ব্যক্তিগত ব্যবহারের জন্য।
+    </div>
+  </div>
+  <div class="keyhint"><kbd>↑</kbd><kbd>↓</kbd> নেভিগেট &nbsp;|&nbsp; <kbd>*</kbd> ব্যাক</div>
+</div>
 
-                // Periodic health check
-                setInterval(() => {
-                    if (!document.body) {
-                        location.reload();
-                    }
-                }, 5000);
-            },
+<script>
+// ══════════════════════════════════════════
+//  CONFIG
+// ══════════════════════════════════════════
+const API = window.location.origin;
 
-            setupEventListeners() {
-                document.addEventListener('keydown', (e) => this.handleKey(e));
-            },
+// ══════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════
+const SK = 'bn_reader_cf_v1';
+let ST = { progress:{}, settings:{ dark:false, fontSize:14 } };
+let allBooks=[], curBook=null, curChIdx=0, prevScr='home-screen';
 
-            handleKey(e) {
-                const key = e.key.toLowerCase();
+function save(){ try{ localStorage.setItem(SK,JSON.stringify({p:ST.progress,s:ST.settings})) }catch(e){} }
+function load(){
+  try{
+    const d=JSON.parse(localStorage.getItem(SK)||'{}');
+    if(d.p) ST.progress=d.p;
+    if(d.s) ST.settings={...ST.settings,...d.s};
+  }catch(e){}
+}
 
-                // D-Pad navigation
-                if (key === 'arrowup') {
-                    e.preventDefault();
-                    if (this.currentView === 'feed') {
-                        this.selectedFeedIndex = Math.max(0, this.selectedFeedIndex - 1);
-                        this.renderFeedView();
-                    } else if (this.currentView === 'post') {
-                        this.selectedCommentIndex = Math.max(0, this.selectedCommentIndex - 1);
-                        this.renderPostView();
-                    }
-                }
+// ══════════════════════════════════════════
+//  SCREEN NAV
+// ══════════════════════════════════════════
+function goTo(id){
+  const cur=document.querySelector('.screen.active');
+  if(cur) prevScr=cur.id;
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+function goBack(){ goTo(prevScr||'home-screen'); }
 
-                if (key === 'arrowdown') {
-                    e.preventDefault();
-                    if (this.currentView === 'feed') {
-                        this.selectedFeedIndex = Math.min(this.posts.length - 1, this.selectedFeedIndex + 1);
-                        this.renderFeedView();
-                    } else if (this.currentView === 'post') {
-                        const maxComments = this.currentPost.comments_data.length;
-                        this.selectedCommentIndex = Math.min(maxComments - 1, this.selectedCommentIndex + 1);
-                        this.renderPostView();
-                    }
-                }
+// ══════════════════════════════════════════
+//  TABS
+// ══════════════════════════════════════════
+function switchTab(t){
+  document.getElementById('tab-books').style.display=t==='books'?'block':'none';
+  document.getElementById('tab-history').style.display=t==='history'?'flex':'none';
+  document.getElementById('tab-book-btn').style.borderBottomColor=t==='books'?'var(--accent)':'transparent';
+  document.getElementById('tab-book-btn').style.color=t==='books'?'var(--accent)':'var(--text2)';
+  document.getElementById('tab-hist-btn').style.borderBottomColor=t==='history'?'var(--accent)':'transparent';
+  document.getElementById('tab-hist-btn').style.color=t==='history'?'var(--accent)':'var(--text2)';
+  if(t==='history') renderHist();
+}
 
-                if (key === 'arrowleft' || key === 'arrowright') {
-                    e.preventDefault();
-                    if (this.currentView === 'post') {
-                        this.openFeedView();
-                    }
-                }
+// ══════════════════════════════════════════
+//  THEME
+// ══════════════════════════════════════════
+function applyTheme(){
+  if(ST.settings.dark) document.body.setAttribute('data-dark','');
+  else document.body.removeAttribute('data-dark');
+  document.getElementById('theme-btn').textContent=ST.settings.dark?'☀':'🌙';
+  const dt=document.getElementById('dtog');
+  if(dt) dt.className='tog'+(ST.settings.dark?' on':'');
+}
+function toggleDark(){ ST.settings.dark=!ST.settings.dark; applyTheme(); save(); }
 
-                // Enter / OK
-                if (key === 'enter') {
-                    e.preventDefault();
-                    if (this.currentView === 'feed') {
-                        this.openPostView(this.selectedFeedIndex);
-                    }
-                }
+// ══════════════════════════════════════════
+//  FONT SIZE
+// ══════════════════════════════════════════
+function applyFont(){
+  document.getElementById('chbody').style.fontSize=ST.settings.fontSize+'px';
+  document.getElementById('fslbl').textContent=ST.settings.fontSize;
+}
+function chFont(d){ ST.settings.fontSize=Math.min(20,Math.max(10,ST.settings.fontSize+d)); applyFont(); save(); }
 
-                // Number keys
-                if (key === '0') {
-                    e.preventDefault();
-                    this.openFeedView();
-                }
-                if (key === '1') {
-                    e.preventDefault();
-                    alert('Inbox\n\nNo new messages');
-                }
-                if (key === '2') {
-                    e.preventDefault();
-                    alert('Search Reddit\n\n(Type subreddit name)');
-                }
-                if (key === '3') {
-                    e.preventDefault();
-                    alert('My Subreddits\n\n• r/technology\n• r/gaming\n• r/science\n• r/worldnews');
-                }
-                if (key === '4') {
-                    e.preventDefault();
-                    if (this.currentView === 'post') {
-                        this.posts[this.currentPost.id - 1].upvotes = 'Upvoted!';
-                        alert('Post upvoted!');
-                        this.renderPostView();
-                    }
-                }
-                if (key === '5') {
-                    e.preventDefault();
-                    this.toggleDarkMode();
-                }
-                if (key === '6') {
-                    e.preventDefault();
-                    alert('Share link:\n\nreddit.com/r/' + this.currentPost.subreddit);
-                }
-                if (key === '7') {
-                    e.preventDefault();
-                    if (this.currentView === 'post') {
-                        this.selectedFeedIndex = Math.max(0, this.selectedFeedIndex - 1);
-                        this.openPostView(this.selectedFeedIndex);
-                    }
-                }
-                if (key === '8') {
-                    e.preventDefault();
-                    if (this.currentView === 'post') {
-                        this.selectedFeedIndex = Math.min(this.posts.length - 1, this.selectedFeedIndex + 1);
-                        this.openPostView(this.selectedFeedIndex);
-                    }
-                }
-                if (key === '9') {
-                    e.preventDefault();
-                    if (this.currentView === 'post') {
-                        this.selectedCommentIndex = 0;
-                        this.renderPostView();
-                    }
-                }
+// ══════════════════════════════════════════
+//  SERVER HEALTH
+// ══════════════════════════════════════════
+async function checkHealth(){
+  const dots=[document.getElementById('sdot'),document.getElementById('sdot2')];
+  const txts=[document.getElementById('stext'),document.getElementById('stext2')];
+  try{
+    const r=await fetch(API+'/api/health');
+    const d=await r.json();
+    dots.forEach(d2=>d2&&(d2.className='dot ok'));
+    txts[0].textContent='সার্ভার চালু';
+    if(txts[1]) txts[1].textContent='চালু (uptime: '+d.uptime+'s)';
+    if(d.cache!==undefined) document.getElementById('cache-info').textContent='ক্যাশ: '+d.cache;
+  }catch(e){
+    dots.forEach(d2=>d2&&(d2.className='dot err'));
+    txts[0].textContent='সার্ভার বন্ধ!';
+    if(txts[1]) txts[1].textContent='সংযোগ নেই';
+  }
+}
+document.getElementById('srv-url').textContent=API;
 
-                // * = Back
-                if (key === '*') {
-                    e.preventDefault();
-                    if (this.currentView !== 'feed') {
-                        this.openFeedView();
-                    }
-                }
+// ══════════════════════════════════════════
+//  API
+// ══════════════════════════════════════════
+async function apiFetch(path){
+  const r=await fetch(API+path);
+  if(!r.ok) throw new Error('HTTP '+r.status);
+  const d=await r.json();
+  if(!d.success) throw new Error(d.error||'Error');
+  return d;
+}
 
-                // # = Menu
-                if (key === '#') {
-                    e.preventDefault();
-                    if (this.currentView === 'settings') {
-                        this.openFeedView();
-                    } else {
-                        this.openSettings();
-                    }
-                }
-            },
+// ══════════════════════════════════════════
+//  BOOKS
+// ══════════════════════════════════════════
+async function loadBooks(){
+  try{
+    const d=await apiFetch('/api/books');
+    allBooks=d.books||[];
+    renderBooks(allBooks);
+    updateBanner();
+  }catch(e){
+    document.getElementById('book-list').innerHTML=
+      '<div class="empty">লোড সমস্যা।<br><br><button class="read-btn" onclick="loadBooks()">আবার চেষ্টা</button></div>';
+  }
+}
 
-            renderFeedView() {
-                try {
-                    const feedView = document.getElementById('feedView');
-                    if (!feedView) return;
-                    
-                    feedView.innerHTML = '';
+function renderBooks(books){
+  const el=document.getElementById('book-list');
+  if(!books.length){ el.innerHTML='<div class="empty">কোনো বই পাওয়া যায়নি।</div>'; return; }
+  el.innerHTML=books.map((b,i)=>{
+    const p=ST.progress[b.url];
+    const pct=p?Math.min(100,Math.round((p.chapterIdx/(p.totalChapters||10))*100)):0;
+    const imgHtml=b.coverUrl
+      ?`<img src="${b.coverUrl}" alt="" onerror="this.parentElement.textContent='${b.title.substring(0,12)}'"`+'>'
+      :b.title.substring(0,14);
+    return `<div class="book-item" tabindex="0" data-i="${i}" onclick="openBook(${i})" onkeydown="itemKey(event,${i},'book')">
+      <div class="book-thumb">${imgHtml}</div>
+      <div class="book-info">
+        <div class="book-name">${b.title}</div>
+        <div class="book-auth">${b.author||''}</div>
+        ${pct>0?`<div class="book-prog"><div class="book-prog-fill" style="width:${pct}%"></div></div>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
 
-                    this.posts.forEach((post, index) => {
-                        const postEl = document.createElement('div');
-                        postEl.className = 'post-item' + (index === this.selectedFeedIndex ? ' selected' : '');
-                        postEl.innerHTML = `
-                            <div class="post-subreddit">${post.subreddit}</div>
-                            <div class="post-title">${post.title}</div>
-                            <div class="post-meta"><span>${post.upvotes}</span><span>${post.comments} cmts</span></div>
-                        `;
-                        feedView.appendChild(postEl);
-                    });
+function filterBooks(){
+  const q=document.getElementById('bsearch').value.toLowerCase().trim();
+  renderBooks(!q?allBooks:allBooks.filter(b=>b.title.toLowerCase().includes(q)||(b.author||'').toLowerCase().includes(q)));
+}
 
-                    document.getElementById('page-title').textContent = 'reddit';
-                    document.getElementById('top-title').textContent = 'r/popular';
-                    document.getElementById('softKeys').innerHTML = `
-                        <div class="soft-key-label">Menu</div>
-                        <div class="soft-key-label">OK</div>
-                        <div class="soft-key-label">Back</div>
-                    `;
-                } catch (error) {
-                    console.error('Error rendering feed:', error);
-                }
-            },
+// ══════════════════════════════════════════
+//  BOOK DETAIL
+// ══════════════════════════════════════════
+function openBook(idx){
+  const b=allBooks[idx];
+  curBook={...b,chapters:[]};
+  document.getElementById('dtopbar').textContent=b.title;
+  document.getElementById('dtitle').textContent=b.title;
+  document.getElementById('dauthor').textContent=b.author||'';
+  const cov=document.getElementById('dcov');
+  cov.innerHTML=b.coverUrl?`<img src="${b.coverUrl}" alt="" onerror="this.parentElement.textContent='${b.title.substring(0,14)}'">`
+    :b.title.substring(0,20);
+  const p=ST.progress[b.url];
+  document.getElementById('dreadbtn').textContent=p?'পড়া চালিয়ে যান':'পড়া শুরু';
+  document.getElementById('ch-list').innerHTML='<div class="empty"><div class="spin" style="margin:0 auto 8px"></div><br>অধ্যায় লোড হচ্ছে…</div>';
+  goTo('detail-screen');
+  loadDetail(b.url,p);
+}
 
-            renderPostView() {
-                try {
-                    const post = this.posts[this.selectedFeedIndex];
-                    if (!post) return;
-                    
-                    this.currentPost = post;
+async function loadDetail(url,prog){
+  try{
+    const d=await apiFetch('/api/book?url='+encodeURIComponent(url));
+    curBook.chapters=d.chapters||[];
+    if(d.title) curBook.title=d.title;
+    if(d.author) curBook.author=d.author;
+    if(prog) prog.totalChapters=d.chapters.length;
+    renderChList(prog);
+  }catch(e){
+    document.getElementById('ch-list').innerHTML='<div class="empty">অধ্যায় লোড সমস্যা।<br><br><button class="read-btn" onclick="loadDetail(\''+url+'\',null)">আবার চেষ্টা</button></div>';
+  }
+}
 
-                    const postHeaderEl = document.getElementById('postHeader');
-                    if (postHeaderEl) {
-                        postHeaderEl.innerHTML = `
-                            <div class="post-header-sub">${post.subreddit} • u/${post.author} • ${post.time}</div>
-                            <div class="post-header-title">${post.title}</div>
-                        `;
-                    }
+function renderChList(prog){
+  const cur=prog?prog.chapterIdx:-1;
+  document.getElementById('ch-list').innerHTML=curBook.chapters.map((ch,i)=>{
+    const isRead=prog&&i<prog.chapterIdx;
+    const isCur=i===cur;
+    return `<div class="ch-item${isCur?' cur':''}" tabindex="0" data-i="${i}" onclick="openChapter(${i})" onkeydown="itemKey(event,${i},'ch')">
+      <div class="ch-num">${i+1}</div>
+      <div class="ch-title">${ch.title}</div>
+      ${isRead?'<div class="ch-mark">✓</div>':isCur?'<div class="ch-mark">▶</div>':''}
+    </div>`;
+  }).join('');
+}
 
-                    const postBodyEl = document.getElementById('postBody');
-                    if (postBodyEl) {
-                        postBodyEl.innerHTML = `<p>${post.body}</p>`;
-                    }
+function startRead(){
+  const p=ST.progress[curBook.url];
+  openChapter(p?p.chapterIdx:0);
+}
 
-                    const postActionsEl = document.getElementById('postActions');
-                    if (postActionsEl) {
-                        postActionsEl.innerHTML = `
-                            <span class="action-btn">▲ ${post.upvotes}</span>
-                            <span class="action-meta">Save</span>
-                            <span class="action-meta">Share</span>
-                            <span class="action-btn">▼</span>
-                        `;
-                    }
+// ══════════════════════════════════════════
+//  READER
+// ══════════════════════════════════════════
+function openChapter(idx){
+  curChIdx=idx;
+  document.getElementById('rbooktitle').textContent=curBook.title;
+  updateChNav();
+  goTo('reader-screen');
+  loadChapter(idx);
+}
 
-                    const commentsSection = document.getElementById('commentsSection');
-                    if (commentsSection) {
-                        commentsSection.innerHTML = '';
-                        post.comments_data.forEach((comment, index) => {
-                            const commentEl = document.createElement('div');
-                            commentEl.className = 'comment' + (index === this.selectedCommentIndex ? ' selected' : '');
-                            commentEl.innerHTML = `
-                                <div class="comment-user">u/${comment.author}</div>
-                                <div class="comment-text">${comment.text}</div>
-                                <div class="comment-meta">${comment.upvotes} • ${comment.time}</div>
-                            `;
-                            commentsSection.appendChild(commentEl);
-                        });
-                    }
+async function loadChapter(idx){
+  const el=document.getElementById('chbody');
+  el.innerHTML='<div class="loading"><div class="spin" style="margin:0 auto 8px"></div><br>লোড হচ্ছে…</div>';
+  el.style.fontSize=ST.settings.fontSize+'px';
+  window.scrollTo(0,0);
+  try{
+    const ch=curBook.chapters[idx];
+    const d=await apiFetch('/api/chapter?url='+encodeURIComponent(ch.url));
+    const paras=(d.content||'').split(/\n\n+/).filter(p=>p.trim());
+    el.innerHTML=`<h1>${d.chapterTitle||ch.title}</h1>`+paras.map(p=>`<p>${p.trim()}</p>`).join('');
+    // Restore scroll
+    const prog=ST.progress[curBook.url];
+    if(prog&&prog.chapterIdx===idx&&prog.scrollPct>0){
+      setTimeout(()=>{
+        const h=document.documentElement.scrollHeight-window.innerHeight;
+        window.scrollTo(0,h*prog.scrollPct);
+      },100);
+    }
+    saveProg(idx,d.chapterTitle||ch.title,0);
+    updateBanner();
+  }catch(e){
+    el.innerHTML=`<div class="err-msg">লোড সমস্যা।<br><br><button class="read-btn" onclick="loadChapter(${idx})">আবার চেষ্টা</button></div>`;
+  }
+}
 
-                    const headerEl = document.querySelectorAll('.comments-header')[0];
-                    if (headerEl) {
-                        headerEl.textContent = `Comments (${post.comments}) — ${this.commentSort}`;
-                    }
-                    
-                    document.getElementById('page-title').textContent = post.subreddit;
-                    document.getElementById('softKeys').innerHTML = `
-                        <div class="soft-key-label">Scroll</div>
-                        <div class="soft-key-label">Reply</div>
-                        <div class="soft-key-label">Back</div>
-                    `;
-                } catch (error) {
-                    console.error('Error rendering post:', error);
-                }
-            },
+function updateChNav(){
+  const tot=curBook.chapters.length;
+  document.getElementById('prev-btn').disabled=curChIdx===0;
+  document.getElementById('next-btn').disabled=curChIdx>=tot-1;
+  document.getElementById('chnav-n').textContent=`${curChIdx+1}/${tot}`;
+}
 
-            openFeedView() {
-                this.currentView = 'feed';
-                document.getElementById('feedView').parentElement.classList.add('active');
-                document.getElementById('postView').classList.remove('active');
-                document.getElementById('settingsView').classList.remove('active');
-                this.renderFeedView();
-            },
+function navCh(d){
+  const n=curChIdx+d;
+  if(n<0||n>=curBook.chapters.length) return;
+  curChIdx=n; updateChNav(); loadChapter(n);
+}
 
-            openPostView(index) {
-                this.currentView = 'post';
-                this.selectedFeedIndex = index;
-                this.selectedCommentIndex = 0;
-                document.getElementById('feedView').parentElement.classList.remove('active');
-                document.getElementById('postView').classList.add('active');
-                document.getElementById('settingsView').classList.remove('active');
-                this.renderPostView();
-            },
+function exitRead(){ goTo('detail-screen'); renderChList(ST.progress[curBook.url]); }
 
-            openSettings() {
-                this.currentView = 'settings';
-                document.getElementById('feedView').parentElement.classList.remove('active');
-                document.getElementById('postView').classList.remove('active');
-                document.getElementById('settingsView').classList.add('active');
-                
-                // Update settings display
-                const darkModeStatus = this.currentMode === 'dark' ? 'On' : 'Off';
-                document.getElementById('darkModeStatus').textContent = darkModeStatus;
-            },
+// Scroll → save progress + progress bar
+window.addEventListener('scroll',()=>{
+  if(!document.getElementById('reader-screen').classList.contains('active')) return;
+  const total=document.documentElement.scrollHeight-window.innerHeight;
+  const pct=total>0?window.scrollY/total:0;
+  document.getElementById('rprog').style.width=(pct*100)+'%';
+  if(curBook) saveProg(curChIdx,null,pct);
+},{passive:true});
 
-            toggleDarkMode() {
-                this.currentMode = this.currentMode === 'dark' ? 'light' : 'dark';
-                if (this.currentMode === 'light') {
-                    document.body.classList.add('light-mode');
-                } else {
-                    document.body.classList.remove('light-mode');
-                }
-                localStorage.setItem('reddit-app-theme', this.currentMode);
-                document.getElementById('darkModeStatus').textContent = this.currentMode === 'dark' ? 'On' : 'Off';
-            },
+function saveProg(chIdx,chTitle,scrollPct){
+  const p=ST.progress[curBook.url]||{};
+  ST.progress[curBook.url]={
+    ...p,
+    chapterIdx:chIdx,
+    scrollPct:scrollPct!==null?scrollPct:(p.scrollPct||0),
+    chapterTitle:chTitle||p.chapterTitle||'',
+    bookTitle:curBook.title,
+    authorName:curBook.author||'',
+    coverUrl:curBook.coverUrl||'',
+    totalChapters:curBook.chapters.length,
+    lastRead:Date.now()
+  };
+  save();
+}
 
-            checkSavedSettings() {
-                const savedTheme = localStorage.getItem('reddit-app-theme');
-                if (savedTheme === 'light') {
-                    this.currentMode = 'light';
-                    document.body.classList.add('light-mode');
-                    document.getElementById('darkModeStatus').textContent = 'Off';
-                }
-            },
+// ══════════════════════════════════════════
+//  CONTINUE BANNER
+// ══════════════════════════════════════════
+function updateBanner(){
+  const entries=Object.entries(ST.progress).sort((a,b)=>(b[1].lastRead||0)-(a[1].lastRead||0));
+  const banner=document.getElementById('cont-banner');
+  if(!entries.length){ banner.style.display='none'; return; }
+  const [url,p]=entries[0];
+  banner.style.display='block';
+  document.getElementById('cb-btitle').textContent=p.bookTitle||'—';
+  document.getElementById('cb-bch').textContent=p.chapterTitle||`অধ্যায় ${p.chapterIdx+1}`;
+  banner._url=url; banner._p=p;
+}
 
-            updateStatus() {
-                document.getElementById('signal').textContent = '📶';
-                document.getElementById('battery').textContent = '🔋';
-                setInterval(() => {
-                    const rand = Math.random();
-                    document.getElementById('battery').textContent = rand > 0.3 ? '🔋' : '⚠️';
-                }, 3000);
-            }
-        };
+async function continueRead(){
+  const b=document.getElementById('cont-banner');
+  const url=b._url, p=b._p; if(!url) return;
+  let book=allBooks.find(x=>x.url===url)||{url,title:p.bookTitle||'—',author:p.authorName||'',coverUrl:p.coverUrl||'',chapters:[]};
+  curBook={...book,chapters:[]};
+  document.getElementById('dtopbar').textContent=curBook.title;
+  document.getElementById('dtitle').textContent=curBook.title;
+  document.getElementById('dauthor').textContent=curBook.author||'';
+  document.getElementById('ch-list').innerHTML='<div class="empty"><div class="spin" style="margin:0 auto 8px"></div></div>';
+  goTo('detail-screen');
+  await loadDetail(url,p);
+  if(curBook.chapters.length>0) openChapter(p.chapterIdx||0);
+}
 
-        // Initialize when DOM is ready
-        document.addEventListener('DOMContentLoaded', () => app.init());
-    </script>
+// ══════════════════════════════════════════
+//  HISTORY
+// ══════════════════════════════════════════
+function renderHist(){
+  const el=document.getElementById('hist-list');
+  const entries=Object.entries(ST.progress).sort((a,b)=>(b[1].lastRead||0)-(a[1].lastRead||0));
+  if(!entries.length){ el.innerHTML='<div class="empty">এখনো কোনো বই পড়া হয়নি।</div>'; return; }
+  el.innerHTML=entries.map(([url,p])=>{
+    const pct=Math.min(100,Math.round((p.chapterIdx/(p.totalChapters||10))*100));
+    return `<div class="hist-item" tabindex="0" onclick="resumeHist('${url}')">
+      <div class="hist-thumb">${p.coverUrl?`<img src="${p.coverUrl}" alt="" onerror="this.style.display='none'">`:''}</div>
+      <div class="hist-info">
+        <div class="hist-title">${p.bookTitle||'—'}</div>
+        <div class="hist-ch">${p.chapterTitle||`অধ্যায় ${p.chapterIdx+1}`}</div>
+      </div>
+      <div class="hist-pct">${pct}%</div>
+    </div>`;
+  }).join('');
+}
+
+async function resumeHist(url){
+  const p=ST.progress[url]; if(!p) return;
+  let book=allBooks.find(b=>b.url===url)||{url,title:p.bookTitle||'—',author:p.authorName||'',coverUrl:p.coverUrl||'',chapters:[]};
+  curBook={...book,chapters:[]};
+  document.getElementById('dtopbar').textContent=curBook.title;
+  document.getElementById('dtitle').textContent=curBook.title;
+  document.getElementById('dauthor').textContent=curBook.author||'';
+  document.getElementById('ch-list').innerHTML='<div class="empty"><div class="spin" style="margin:0 auto 8px"></div></div>';
+  goTo('detail-screen');
+  await loadDetail(url,p);
+  if(curBook.chapters.length>0) openChapter(p.chapterIdx||0);
+}
+
+// ══════════════════════════════════════════
+//  KEYBOARD NAVIGATION (Cloud Phone keys)
+// ══════════════════════════════════════════
+function itemKey(e,idx,type){
+  if(e.key==='Enter'||e.key===' '){
+    e.preventDefault();
+    if(type==='book') openBook(idx);
+    else if(type==='ch') openChapter(idx);
+  }
+  if(e.key==='ArrowDown'){ e.preventDefault(); focusNext(e.target); }
+  if(e.key==='ArrowUp'){ e.preventDefault(); focusPrev(e.target); }
+}
+
+function focusNext(el){
+  const items=[...el.parentElement.querySelectorAll('[tabindex="0"]')];
+  const i=items.indexOf(el);
+  if(i<items.length-1) items[i+1].focus();
+}
+function focusPrev(el){
+  const items=[...el.parentElement.querySelectorAll('[tabindex="0"]')];
+  const i=items.indexOf(el);
+  if(i>0) items[i-1].focus();
+}
+
+document.addEventListener('keydown',e=>{
+  const scr=document.querySelector('.screen.active').id;
+  // * key = back
+  if(e.key==='*'){
+    e.preventDefault();
+    if(scr==='reader-screen') exitRead();
+    else if(scr!=='home-screen') goBack();
+  }
+  // Reader: left/right arrows for chapter nav
+  if(scr==='reader-screen'){
+    if(e.key==='ArrowLeft'){ e.preventDefault(); navCh(-1); }
+    if(e.key==='ArrowRight'){ e.preventDefault(); navCh(1); }
+  }
+});
+
+// ══════════════════════════════════════════
+//  SETTINGS HELPERS
+// ══════════════════════════════════════════
+function clearProg(){
+  if(confirm('সব পড়ার অগ্রগতি মুছে যাবে?')){
+    ST.progress={}; save(); updateBanner(); renderBooks(allBooks);
+    alert('মুছে ফেলা হয়েছে।');
+  }
+}
+
+// ══════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════
+load();
+applyTheme();
+applyFont();
+updateBanner();
+checkHealth();
+setInterval(checkHealth,30000);
+loadBooks();
+</script>
 </body>
 </html>
